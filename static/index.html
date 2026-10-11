@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="./styles.css">
   <script>
     tailwind.config = {
       theme: {
@@ -78,6 +78,11 @@
       </div>
     </div>
   </header>
+
+  <!-- SERVER OFFLINE BANNER (Shown if backend server is not running) -->
+  <div id="server-offline-banner" class="hidden bg-amber-500/15 border-b border-amber-500/30 text-amber-300 px-4 py-2.5 text-xs text-center font-medium">
+    ⚠️ Python Backend Server is not running on <strong>http://127.0.0.1:8000</strong>. Start it in PowerShell with: <code class="bg-amber-950 px-2 py-0.5 rounded font-mono text-amber-200 ml-1">python app.py</code>
+  </div>
 
   <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -390,7 +395,7 @@
           <div class="mt-6">
             <h4 class="text-xs font-semibold text-slate-300 mb-2">Observed vs. Predicted Regression Scatter Plot:</h4>
             <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-2">
-              <img src="/reports/rainfall_scatter.png" alt="Rainfall Regression Scatter" class="w-full h-auto object-contain max-h-72 mx-auto">
+              <img id="scatter-img" src="/reports/rainfall_scatter.png" alt="Rainfall Regression Scatter" class="w-full h-auto object-contain max-h-72 mx-auto">
             </div>
           </div>
         </div>
@@ -400,7 +405,7 @@
           <h3 class="text-sm font-bold text-white mb-2">Cloud Classification Confusion Matrix</h3>
           <p class="text-xs text-slate-400 mb-4">Evaluated on held-out test split (18 samples).</p>
           <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-2">
-            <img src="/reports/confusion_matrix.png" alt="Cloud Confusion Matrix" class="w-full h-auto object-contain">
+            <img id="cm-img" src="/reports/confusion_matrix.png" alt="Cloud Confusion Matrix" class="w-full h-auto object-contain">
           </div>
         </div>
 
@@ -449,6 +454,6 @@
 
   </main>
 
-  <script src="/app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>

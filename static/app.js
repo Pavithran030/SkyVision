@@ -3,6 +3,11 @@
  * Handles file uploads, sample selection, FastAPI async requests, and Chart.js rendering.
  */
 
+// Dynamic API Base URL:
+// If running on port 8000 (direct FastAPI server), use relative '/api'
+// If running on port 5500 (VS Code Live Server) or another host/port, point to 'http://127.0.0.1:8000'
+const API_BASE = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+
 let currentMode = 'sample'; // 'sample' or 'upload'
 let selectedFile = null;
 let selectedSamplePath = null;
@@ -14,7 +19,16 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchSampleList();
   setupDropzone();
   updateWeatherValues();
+  setupReportImages();
 });
+
+// Setup Evaluation Report Images for Cross-Origin (Live Server)
+function setupReportImages() {
+  const scatterImg = document.getElementById('scatter-img');
+  const cmImg = document.getElementById('cm-img');
+  if (scatterImg) scatterImg.src = `${API_BASE}/reports/rainfall_scatter.png`;
+  if (cmImg) cmImg.src = `${API_BASE}/reports/confusion_matrix.png`;
+}
 
 // Tab Switcher
 function switchTab(tabId) {
@@ -35,9 +49,13 @@ function switchTab(tabId) {
 
 // Fetch system health and model metadata
 async function fetchSystemStatus() {
+  const banner = document.getElementById('server-offline-banner');
   try {
-    const res = await fetch('/api/status');
+    const res = await fetch(`${API_BASE}/api/status`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+
+    if (banner) banner.classList.add('hidden');
 
     const cloudBadge = document.getElementById('cloud-status-badge');
     if (data.cloud_model_loaded) {
@@ -57,14 +75,21 @@ async function fetchSystemStatus() {
       rainBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Nowcasting: Unavailable';
     }
   } catch (err) {
-    console.error('Failed to load system status:', err);
+    console.warn('Backend server not reachable at ' + API_BASE + ':', err);
+    if (banner) banner.classList.remove('hidden');
+    const cloudBadge = document.getElementById('cloud-status-badge');
+    if (cloudBadge) {
+      cloudBadge.className = 'px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1.5 font-medium';
+      cloudBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span> Server Offline';
+    }
   }
 }
 
 // Fetch Demo Samples
 async function fetchSampleList() {
   try {
-    const res = await fetch('/api/samples');
+    const res = await fetch(`${API_BASE}/api/samples`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const select = document.getElementById('sample-select');
     select.innerHTML = '';
@@ -74,21 +99,20 @@ async function fetchSampleList() {
       return;
     }
 
-    data.samples.forEach((s, idx) => {
+    data.samples.forEach((s) => {
       const opt = document.createElement('option');
       opt.value = s.relative_path;
       opt.textContent = `${s.class_name.replace('_', ' ').toUpperCase()} — ${s.filename}`;
-      opt.dataset.url = s.url;
+      opt.dataset.url = `${API_BASE}${s.url}`;
       select.appendChild(opt);
     });
 
-    // Auto-select first sample
     if (data.samples.length > 0) {
       select.selectedIndex = 0;
       handleSampleSelect();
     }
   } catch (err) {
-    console.error('Failed to load sample list:', err);
+    console.warn('Failed to load sample list:', err);
   }
 }
 
@@ -231,10 +255,14 @@ async function runAnalysis() {
   spinner.classList.remove('hidden');
 
   try {
-    const res = await fetch('/api/predict', {
+    const res = await fetch(`${API_BASE}/api/predict`, {
       method: 'POST',
       body: formData,
     });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Server returned status ${res.status}: ${errText}`);
+    }
     const data = await res.json();
 
     if (!data.success) {
@@ -245,7 +273,7 @@ async function runAnalysis() {
     renderResults(data);
   } catch (err) {
     console.error('Analysis request error:', err);
-    alert(`Server error during prediction: ${err.message}`);
+    alert(`Could not connect to Python backend (${API_BASE}).\nPlease make sure the server is running:\nRun: python app.py in PowerShell.`);
   } finally {
     btn.disabled = false;
     spinner.classList.add('hidden');
@@ -310,7 +338,6 @@ function renderChart(probabilities) {
   const labels = Object.keys(probabilities).map(k => k.replace(/_/g, ' ').toUpperCase());
   const values = Object.values(probabilities).map(v => (v * 100).toFixed(1));
 
-  // Find max for highlighting
   const maxVal = Math.max(...values.map(Number));
   const bgColors = values.map(v => Number(v) === maxVal ? 'rgba(59, 130, 246, 0.9)' : 'rgba(71, 85, 105, 0.7)');
   const borderColors = values.map(v => Number(v) === maxVal ? '#60a5fa' : '#64748b');
