@@ -1,0 +1,45 @@
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+
+# Data directories (keep manifests and readmes)
+data/raw/*
+!data/raw/README.md
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/README.md
+!data/processed/.gitkeep
+
+# Model weights and artifacts (keep README and .gitkeep)
+artifacts/*.pt
+artifacts/*.pth
+artifacts/*.joblib
+artifacts/*.bin
+!artifacts/README.md
+!artifacts/.gitkeep
+
+# Test & coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment and secrets
+.env
+.env.local
+.streamlit/secrets.toml
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
