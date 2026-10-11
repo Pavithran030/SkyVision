@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyVision — Cloud Pattern Recognition & Rainfall Nowcasting</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- TOP NAVBAR -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 text-xl">
+          ⛅
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            SkyVision
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Machine Vision v0.1</span>
+          </h1>
+          <p class="text-xs text-slate-400">Ground Sky Pattern Classification & Rainfall Nowcasting</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 text-sm font-medium">
+        <button id="nav-live" onclick="switchTab('live')" class="nav-btn px-4 py-1.5 rounded-lg text-white bg-blue-600 shadow-sm transition-all">
+          🔍 Live Analysis
+        </button>
+        <button id="nav-eval" onclick="switchTab('eval')" class="nav-btn px-4 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+          📊 Model Evaluation
+        </button>
+        <button id="nav-about" onclick="switchTab('about')" class="nav-btn px-4 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+          ℹ️ Scientific Limits
+        </button>
+      </nav>
+
+      <!-- System Health Status -->
+      <div class="hidden md:flex items-center gap-2 text-xs">
+        <span id="cloud-status-badge" class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          CNN: Active
+        </span>
+        <span id="rain-status-badge" class="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5 font-medium">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          Nowcasting: Active
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: LIVE ANALYSIS SCREEN                              -->
+    <!-- ======================================================== -->
+    <section id="tab-live" class="tab-content block">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- LEFT COLUMN: Input Controls (5 Cols) -->
+        <div class="lg:col-span-5 space-y-6">
+
+          <!-- Upload / Sample Selector Card -->
+          <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 shadow-xl backdrop-blur">
+            <h2 class="text-base font-semibold text-white mb-1 flex items-center gap-2">
+              <span>📷 Sky Photograph Input</span>
+            </h2>
+            <p class="text-xs text-slate-400 mb-4">Upload your ground sky photo or choose a benchmark sample.</p>
+
+            <!-- Mode Selector Tabs -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+              <button type="button" id="btn-mode-sample" onclick="setInputMode('sample')" class="py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition">
+                ⚡ Demo Samples
+              </button>
+              <button type="button" id="btn-mode-upload" onclick="setInputMode('upload')" class="py-2 text-xs font-semibold rounded-lg bg-slate-700/60 text-slate-300 hover:text-white transition">
+                📁 Upload File
+              </button>
+            </div>
+
+            <!-- Sample Dropdown Mode -->
+            <div id="sample-mode-container" class="space-y-3">
+              <label class="block text-xs font-medium text-slate-300">Choose Benchmarked Sky Sample:</label>
+              <select id="sample-select" onchange="handleSampleSelect()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition">
+                <option value="">Loading samples...</option>
+              </select>
+            </div>
+
+            <!-- File Upload Dropzone Mode -->
+            <div id="upload-mode-container" class="hidden space-y-3">
+              <label class="block text-xs font-medium text-slate-300">Select Image File (JPG, PNG, WEBP):</label>
+              <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-900/40">
+                <div class="text-3xl mb-2">☁️</div>
+                <p class="text-xs text-slate-300 font-medium">Click or Drag & Drop sky image here</p>
+                <p class="text-[11px] text-slate-500 mt-1">Accepts JPG, PNG, WEBP, BMP (min 64x64 px)</p>
+                <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+              </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div id="preview-container" class="mt-4 pt-4 border-t border-slate-700/60 hidden">
+              <div class="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-700 aspect-video flex items-center justify-center">
+                <img id="image-preview" src="" alt="Sky Preview" class="w-full h-full object-cover">
+                <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur text-[11px] text-slate-300" id="preview-meta">
+                  Ready
+                </div>
+              </div>
+            </div>
+
+            <!-- Validation Warnings -->
+            <div id="validation-alert" class="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs hidden">
+              <div class="font-semibold flex items-center gap-1.5">
+                <span>⚠️ Image Quality Warning</span>
+              </div>
+              <ul id="validation-warnings-list" class="mt-1 list-disc list-inside space-y-0.5 text-[11px]"></ul>
+            </div>
+          </div>
+
+          <!-- Weather Variables Accordion (Multimodal Input) -->
+          <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 shadow-xl backdrop-blur">
+            <div class="flex items-center justify-between cursor-pointer" onclick="toggleWeatherAccordion()">
+              <div>
+                <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                  <span>🌦️ Prediction-Time Weather Context</span>
+                </h3>
+                <p class="text-xs text-slate-400">Contemporaneous surface conditions for Multimodal Nowcasting</p>
+              </div>
+              <span id="weather-toggle-icon" class="text-slate-400 text-xs transform transition-transform">▼</span>
+            </div>
+
+            <div id="weather-sliders-container" class="mt-4 space-y-4 pt-4 border-t border-slate-700/60">
+              <div>
+                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                  <span>Temperature (°C)</span>
+                  <span id="temp-val" class="font-mono font-semibold text-blue-400">28.0 °C</span>
+                </div>
+                <input type="range" id="input-temp" min="-5" max="45" step="0.5" value="28" oninput="updateWeatherValues()" class="w-full accent-blue-500">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                  <span>Relative Humidity (%)</span>
+                  <span id="humidity-val" class="font-mono font-semibold text-cyan-400">75 %</span>
+                </div>
+                <input type="range" id="input-humidity" min="20" max="100" step="1" value="75" oninput="updateWeatherValues()" class="w-full accent-cyan-500">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                  <span>Surface Pressure (hPa)</span>
+                  <span id="pressure-val" class="font-mono font-semibold text-emerald-400">1008 hPa</span>
+                </div>
+                <input type="range" id="input-pressure" min="950" max="1040" step="1" value="1008" oninput="updateWeatherValues()" class="w-full accent-emerald-500">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                  <span>Wind Speed (km/h)</span>
+                  <span id="wind-val" class="font-mono font-semibold text-amber-400">14.0 km/h</span>
+                </div>
+                <input type="range" id="input-wind" min="0" max="80" step="0.5" value="14" oninput="updateWeatherValues()" class="w-full accent-amber-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Analyze CTA Button -->
+          <button id="btn-analyze" onclick="runAnalysis()" class="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/25 active:scale-[0.99] transition flex items-center justify-center gap-2">
+            <span id="btn-spinner" class="hidden w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <span>🚀 Run Vision & Nowcasting Analysis</span>
+          </button>
+        </div>
+
+        <!-- RIGHT COLUMN: Output Analysis Dashboard (7 Cols) -->
+        <div class="lg:col-span-7 space-y-6">
+
+          <!-- Empty State Container -->
+          <div id="results-empty-state" class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-12 text-center text-slate-400 flex flex-col items-center justify-center min-h-[460px]">
+            <div class="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center text-3xl mb-4 border border-slate-700/60 shadow-inner">
+              🔭
+            </div>
+            <h3 class="text-base font-semibold text-slate-200">Awaiting Sky Photograph</h3>
+            <p class="text-xs text-slate-400 max-w-sm mt-1">Select a benchmark demo sample or upload a sky photograph from your computer, then click Run Analysis.</p>
+          </div>
+
+          <!-- Active Results Container (hidden initially) -->
+          <div id="results-active-container" class="space-y-6 hidden">
+
+            <!-- TASK A CARD: Cloud Pattern Classification -->
+            <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-6 shadow-xl backdrop-blur">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">Task A</span>
+                  <h3 class="text-base font-bold text-white">Cloud Pattern Recognition</h3>
+                </div>
+                <span id="cloud-confidence-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  95.4% Confidence
+                </span>
+              </div>
+
+              <!-- Top Prediction Hero -->
+              <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs text-slate-400 font-medium">Top Predicted Sky Pattern</p>
+                  <h4 id="cloud-pred-name" class="text-2xl font-extrabold text-white capitalize mt-0.5">Thick White Clouds</h4>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs text-slate-500 font-medium">Vision Architecture</span>
+                  <p class="text-xs font-semibold text-slate-300">MobileNetV3-Small (1024-D)</p>
+                </div>
+              </div>
+
+              <!-- Meteorological Explanation -->
+              <p id="cloud-explanation" class="text-xs text-slate-300 leading-relaxed mb-5 bg-slate-900/40 p-3 rounded-lg border border-slate-800">
+                Dense, low-luminance clouds indicating heavy optical thickness and active condensation.
+              </p>
+
+              <!-- Probability Distribution Chart -->
+              <div>
+                <h5 class="text-xs font-semibold text-slate-300 mb-2">Class Probability Distribution:</h5>
+                <div class="h-44 w-full">
+                  <canvas id="cloud-chart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- TASK B CARD: Rainfall Nowcasting -->
+            <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-6 shadow-xl backdrop-blur">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Task B</span>
+                  <h3 class="text-base font-bold text-white">Next-Hour Rainfall Nowcasting</h3>
+                </div>
+                <span id="rain-model-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  image-only
+                </span>
+              </div>
+
+              <!-- Rainfall Metrics Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5">
+                  <p class="text-[11px] text-slate-400 font-medium">Rain Category</p>
+                  <p id="rain-pred-category" class="text-lg font-bold text-cyan-400 capitalize mt-1">Light Rain</p>
+                  <p class="text-[10px] text-slate-500 mt-0.5">Discrete Horizon Bin</p>
+                </div>
+
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5">
+                  <p class="text-[11px] text-slate-400 font-medium">Estimated Volume</p>
+                  <p id="rain-pred-amount" class="text-lg font-bold text-emerald-400 mt-1">1.45 mm</p>
+                  <p class="text-[10px] text-slate-500 mt-0.5">Accumulated next 1 hour</p>
+                </div>
+
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5">
+                  <p class="text-[11px] text-slate-400 font-medium">Horizon Window</p>
+                  <p id="rain-pred-horizon" class="text-lg font-bold text-purple-400 mt-1">Next 1 Hour</p>
+                  <p class="text-[10px] text-slate-500 mt-0.5">[t, t+1h) non-leaking</p>
+                </div>
+              </div>
+
+              <!-- Multimodal Context Comparison Banner -->
+              <div id="multimodal-comparison-box" class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
+                <div>
+                  <span class="font-semibold text-white">Multimodal Model (Vision + Weather):</span>
+                  <p class="text-[11px] text-slate-400">Contextual estimation incorporating local temperature, humidity, pressure, and wind.</p>
+                </div>
+                <span id="multimodal-pred-badge" class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30">
+                  Moderate Rain
+                </span>
+              </div>
+
+              <!-- Scientific Disclaimer Footer -->
+              <div class="mt-4 pt-3 border-t border-slate-700/50 flex items-center justify-between text-[11px] text-slate-400">
+                <span id="rain-label-source">Label source: open_meteo_proxy_reanalysis</span>
+                <span class="text-amber-400/90 font-medium">⚠️ Prototype Demonstration</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: MODEL EVALUATION SCREEN                           -->
+    <!-- ======================================================== -->
+    <section id="tab-eval" class="tab-content hidden space-y-8">
+      <div>
+        <h2 class="text-xl font-bold text-white">📊 Quantitative Model Evaluation Benchmark</h2>
+        <p class="text-xs text-slate-400 mt-1">Evaluation strictly on held-out test splits with zero temporal or data leakage.</p>
+      </div>
+
+      <!-- Top Summary Metrics Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+          <p class="text-xs text-slate-400">Test Accuracy (Cloud)</p>
+          <p class="text-2xl font-extrabold text-blue-400 mt-1">77.78%</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">MobileNetV3-Small</p>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+          <p class="text-xs text-slate-400">Balanced Accuracy</p>
+          <p class="text-2xl font-extrabold text-emerald-400 mt-1">80.00%</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Macro averaged across classes</p>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+          <p class="text-xs text-slate-400">Cloud Macro-F1</p>
+          <p class="text-2xl font-extrabold text-cyan-400 mt-1">0.7200</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Evaluated on test set</p>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+          <p class="text-xs text-slate-400">Rainfall MAE Reduction</p>
+          <p class="text-2xl font-extrabold text-purple-400 mt-1">-1.05 mm</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">2.83 mm vs 3.88 mm baseline</p>
+        </div>
+      </div>
+
+      <!-- Comparison Table & Confusion Matrix Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- Table of Models (7 Cols) -->
+        <div class="lg:col-span-7 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 shadow-xl">
+          <h3 class="text-sm font-bold text-white mb-3">Model Variant Benchmark on Held-Out Test Set</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900/60 text-slate-400 border-b border-slate-700 text-[11px] uppercase">
+                <tr>
+                  <th class="py-2.5 px-3">Model Setup</th>
+                  <th class="py-2.5 px-3">Macro-F1</th>
+                  <th class="py-2.5 px-3">Accuracy</th>
+                  <th class="py-2.5 px-3">MAE (mm)</th>
+                  <th class="py-2.5 px-3">RMSE (mm)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 text-xs">
+                <tr class="hover:bg-slate-800/40">
+                  <td class="py-2.5 px-3 font-medium text-slate-300">Majority / Median Baseline</td>
+                  <td class="py-2.5 px-3 font-mono">0.1667</td>
+                  <td class="py-2.5 px-3 font-mono">50.0%</td>
+                  <td class="py-2.5 px-3 font-mono">3.88</td>
+                  <td class="py-2.5 px-3 font-mono">6.94</td>
+                </tr>
+                <tr class="bg-blue-950/20 hover:bg-blue-900/30">
+                  <td class="py-2.5 px-3 font-bold text-blue-400">Image-Only CNN Embeddings</td>
+                  <td class="py-2.5 px-3 font-mono font-bold text-white">0.2559</td>
+                  <td class="py-2.5 px-3 font-mono">40.0%</td>
+                  <td class="py-2.5 px-3 font-mono font-bold text-emerald-400">2.83</td>
+                  <td class="py-2.5 px-3 font-mono text-emerald-400">4.53</td>
+                </tr>
+                <tr class="bg-indigo-950/20 hover:bg-indigo-900/30">
+                  <td class="py-2.5 px-3 font-bold text-indigo-400">Multimodal (Image + Weather)</td>
+                  <td class="py-2.5 px-3 font-mono font-bold text-cyan-400">0.3145</td>
+                  <td class="py-2.5 px-3 font-mono">40.0%</td>
+                  <td class="py-2.5 px-3 text-slate-500">N/A</td>
+                  <td class="py-2.5 px-3 text-slate-500">N/A</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-6">
+            <h4 class="text-xs font-semibold text-slate-300 mb-2">Observed vs. Predicted Regression Scatter Plot:</h4>
+            <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-2">
+              <img src="/reports/figures/rainfall_observed_vs_predicted.png" alt="Rainfall Regression Scatter" class="w-full h-auto object-contain max-h-72 mx-auto">
+            </div>
+          </div>
+        </div>
+
+        <!-- Confusion Matrix Viewer (5 Cols) -->
+        <div class="lg:col-span-5 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 shadow-xl">
+          <h3 class="text-sm font-bold text-white mb-2">Cloud Classification Confusion Matrix</h3>
+          <p class="text-xs text-slate-400 mb-4">Evaluated on held-out test split (18 samples).</p>
+          <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-2">
+            <img src="/reports/figures/cloud_confusion_matrix.png" alt="Cloud Confusion Matrix" class="w-full h-auto object-contain">
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: ABOUT & SCIENTIFIC LIMITS                         -->
+    <!-- ======================================================== -->
+    <section id="tab-about" class="tab-content hidden space-y-6">
+      <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-8 shadow-xl max-w-4xl mx-auto space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white">ℹ️ Scientific Foundations & Meteorological Constraints</h2>
+          <p class="text-xs text-slate-400 mt-1">Understanding machine vision limitations when applied to precipitation nowcasting.</p>
+        </div>
+
+        <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-bold text-blue-400 mb-1">1. The Critical Atmospheric Limitation</h3>
+            <p>A ground-based sky camera captures optical bottom scattering and visible cloud morphology. However, true precipitation physics depend on total precipitable water, vertical cloud thickness, cloud condensation nuclei, and upper-air thermal updrafts not visible from a single 2D ground image. Therefore, training a cloud classifier does <strong>not</strong> automatically yield a reliable rainfall estimator.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-bold text-cyan-400 mb-1">2. Decoupling Task A and Task B</h3>
+            <p>Our architecture maintains strict separation between <strong>Task A (Cloud Recognition)</strong> and <strong>Task B (Rainfall Estimation)</strong>. Visual features (1024-D embeddings) are extracted from the CNN and fed to dedicated estimators trained on timestamp-aligned rainfall targets.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-bold text-emerald-400 mb-1">3. Strict Prevention of Temporal Leakage</h3>
+            <p>To avoid leaking information between frames, all splits are <strong>date-aware</strong> (storm-aware). Consecutive photos from the same weather system stay together in the same split. Furthermore, all model inputs are strictly at or before image capture time $t$, and the rainfall prediction is explicitly evaluated on $[t, t+1\text{ hour})$.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-bold text-amber-400 mb-1">4. Prototype Label Provenance</h3>
+            <p>When physical on-site rain gauges are unavailable, Open-Meteo reanalysis/model data provides a valuable research proxy. Our interface transparently marks these predictions with a <code>proxy-label experiment</code> badge, preventing false claims of gauge-calibrated accuracy.</p>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-700/60 flex flex-wrap gap-4 text-xs text-slate-400">
+          <span>📚 <strong>Datasets</strong>: SWIMCAT, TJNU Ground-based Cloud Dataset (GCD)</span>
+          <span>⚡ <strong>Backbone</strong>: MobileNetV3-Small (PyTorch)</span>
+          <span>🌐 <strong>API Proxy</strong>: Open-Meteo CC-BY 4.0</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

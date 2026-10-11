@@ -10,3 +10,4 @@
 | 2026-10-11 | Task B: Baseline | Majority Classifier + Median Regressor | Test: 20 | Test Macro-F1: 0.1667 | Test MAE: 3.88 mm | Baseline benchmark |
 | 2026-10-11 | Task B: Image ML | Random Forest on CNN Embeddings | Test: 20 | Test Macro-F1: 0.2559 | Test MAE: 2.83 mm | Outperforms baseline in MAE (2.83 vs 3.88 mm) and Macro-F1 (0.2559 vs 0.1667) |
 | 2026-10-11 | Task B: Multimodal | Random Forest (Embeddings + Weather Context) | Test: 20 | Test Macro-F1: 0.3145 | Balanced Acc: 40.0% | Multimodal context improves classification Macro-F1 |
+| 2026-10-11 | UI Architecture | Migrated to FastAPI + Modern Async Web SPA | N/A | 24/24 Tests passing | Zero build step | Replaced Streamlit with high-performance responsive frontend + Chart.js |

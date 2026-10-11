@@ -214,12 +214,15 @@ Extracts 1024-dim CNN embeddings and trains the Baseline, Image-only Random Fore
 .\.venv\Scripts\python.exe scripts/train_rainfall_model.py
 ```
 
-### 7. Launch the Streamlit Web Application
-Launch the interactive web dashboard:
+### 7. Launch the Modern Web Dashboard Application
+Launch the high-performance FastAPI web dashboard:
 ```powershell
-.\.venv\Scripts\streamlit.exe run src/cloud_rainfall/ui/app.py
+.\.venv\Scripts\python.exe scripts/run_server.py
 ```
-Open your browser at `http://localhost:8501`.
+Open your browser at `http://127.0.0.1:8000`.
+
+Interactive OpenAPI / Swagger documentation is also accessible at:
+`http://127.0.0.1:8000/docs`
 
 ---
 
@@ -252,27 +255,23 @@ The deep feature representations extracted by the CNN reduced rainfall estimatio
 
 ## 🖥️ 7. Walkthrough of the Web Dashboard Screens
 
-When you demo the project locally (`streamlit run src/cloud_rainfall/ui/app.py`), you can present the 4 main navigation sections:
+When you demo the project locally (`python scripts/run_server.py`), you can present the 3 main navigation views:
 
-1. **Home / Overview:**  
-   Presents the project title, the scientific distinction between cloud classification and rainfall nowcasting, live sidebar status indicators showing whether model checkpoints are loaded, and the academic prototype disclaimer.
+1. **Live Analysis:**  
+   - **Input Section:** Drag-and-drop file upload zone or 1-click **Benchmark Demo Samples** selector (allowing instant switching between clear sky, ripple altocumulus, dark storm clouds, etc.).
+   - **Real-Time Image HUD:** Image dimensions, RGB channels, and warning alerts (for underexposure or washed-out images).
+   - **Interactive Weather Panel:** Dynamic sliders for Temperature, Relative Humidity, Pressure, and Wind Speed to evaluate multimodal predictions.
+   - **Task A Card (Cloud Pattern Recognition):** Top predicted sky category, confidence badge, meteorological explanation, and an interactive **Chart.js animated horizontal bar chart** showing all 5 class probabilities.
+   - **Task B Card (Rainfall Nowcasting):** Next-hour discrete rain category, expected precipitation amount (mm), horizon indicator (`Next 1 Hour [t, t+1h)`), and Multimodal Context comparison badge.
 
-2. **Analyze Sky Image:**  
-   - Allows uploading any sky photo (JPG, PNG, WEBP) or selecting a sample image from the dataset.
-   - Shows live image metadata (dimensions, intensity) and validation warnings (e.g. darkness or overexposure).
-   - An expandable weather panel allows tuning contemporaneous surface weather variables (temperature, relative humidity, pressure, wind speed).
-   - Clicking **"Run Vision & Nowcasting Analysis"** displays:
-     - Top predicted cloud category with confidence score.
-     - Sorted probability bar chart for all 5 cloud types.
-     - Meteorological description explaining the cloud morphology.
-     - Next-hour rainfall category, estimated precipitation in mm, prediction horizon, and model provenance badge (`image-only` or `proxy-label experiment`).
+2. **Model Evaluation:**  
+   - Held-out test accuracy benchmark cards (77.78% Test Acc, 80.00% Balanced Acc, 0.7200 Macro-F1).
+   - Comprehensive comparative performance table (Baseline vs. Image-only vs. Multimodal).
+   - High-resolution normalized Confusion Matrix heatmap.
+   - Observed vs. Predicted rainfall regression scatter plot.
 
-3. **Model Evaluation:**  
-   - **Tab 1 (Cloud Classification):** Shows held-out test accuracy (77.78%), the normalized confusion matrix heatmap, and a sample predictions table.
-   - **Tab 2 (Rainfall Nowcasting):** Displays model comparison metrics, the scatter plot of Observed vs. Predicted rainfall (mm), and model metadata JSON.
-
-4. **About & Scientific Limits:**  
-   Provides references to SWIMCAT, TJNU-GCD, and Open-Meteo, with full discussion on domain adaptation and physical limitations.
+3. **Scientific Foundations & Limitations:**  
+   - Detailed domain explanations of physical camera geometry, moisture columns, and proxy reanalysis disclosures.
 
 ---
 

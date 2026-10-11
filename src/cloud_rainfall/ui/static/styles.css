@@ -1,0 +1,54 @@
+/* SkyVision Custom Dashboard Styling */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Dropzone hover transitions */
+#dropzone {
+  transition: all 0.2s ease-in-out;
+}
+#dropzone:hover {
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+/* Slider custom styling */
+input[type=range] {
+  height: 6px;
+  border-radius: 3px;
+  background: #334155;
+  outline: none;
+}
+
+/* Tab transitions */
+.tab-content {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
