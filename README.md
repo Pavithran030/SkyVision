@@ -72,80 +72,56 @@ This project implements an end-to-end computer vision and machine learning syste
                                                              │
                                                              ▼
                                                 ┌──────────────────────────┐
-                                                │ Streamlit Web Dashboard  │
+                                                │ FastAPI Web Dashboard    │
                                                 └──────────────────────────┘
 ```
 
 ---
 
-## 📂 3. Repository Structure
+## 📂 3. Professional Project Structure (Zero Deep Nesting)
 
 ```text
 Mini_Project/
-├── AGENTS.md                                # Strict agentic coding rules & constraints
-├── README.md                                # Complete system documentation and guide
-├── pyproject.toml                           # Package configuration & pytest settings
-├── requirements.txt                         # Pinned Python package dependencies
-├── .gitignore                               # Git ignore rules for data, weights, and caches
-├── .env.example                             # Environment variables and API endpoints
-├── configs/
-│   ├── paths.yaml                           # Directory paths and artifact locations
-│   ├── cloud_model.yaml                     # CNN architecture, transforms, classes
-│   └── rainfall_model.yaml                  # Rain bin thresholds, weather features
-├── data/
-│   ├── raw/                                 # Raw sky images (excluded from Git)
-│   ├── processed/                           # Intermediate caches (excluded from Git)
-│   └── manifests/
-│       ├── cloud_manifest.csv               # Image paths, labels, stratified splits
-│       └── rainfall_manifest.csv            # Aligned timestamps, next-hour rain labels
-├── artifacts/
-│   ├── cloud_classifier_best.pt             # Best trained MobileNetV3 checkpoint
-│   ├── rainfall_classifier_best.joblib      # Random Forest rain category classifier
-│   ├── rainfall_regressor_best.joblib       # Random Forest continuous rain regressor
-│   ├── multimodal_classifier_best.joblib    # Multimodal (Image + Weather) model
-│   └── model_metadata.json                  # Artifact metadata & evaluation metrics
-├── scripts/
-│   ├── prepare_cloud_dataset.py             # Generates sample data or ingests raw images
-│   ├── inspect_dataset.py                   # Data quality audit and manifest inspection
-│   ├── train_cloud_classifier.py            # Fine-tunes MobileNetV3 on validation macro-F1
-│   ├── evaluate_models.py                   # Evaluates checkpoint on held-out test split
-│   ├── build_rainfall_pairs.py              # Aligns image timestamps with rainfall targets
-│   └── train_rainfall_model.py              # Trains baseline, image, and multimodal models
-├── src/
-│   └── cloud_rainfall/
-│       ├── config.py                        # Centralized YAML configuration loader
-│       ├── data/
-│       │   ├── validation.py                # PIL/NumPy image validation checks
-│       │   ├── manifests.py                 # Folder scanning, hashing, stratified split
-│       │   ├── datasets.py                  # PyTorch Dataset and augmentations
-│       │   └── rainfall_pairing.py          # Time alignment and date-aware splitting
-│       ├── models/
-│       │   ├── cloud_classifier.py          # MobileNetV3-Small module & checkpoint I/O
-│       │   ├── inference.py                 # Single-image inference engine
-│       │   └── rainfall_estimator.py        # Random Forest & Dummy baseline models
-│       ├── services/
-│       │   ├── weather_client.py            # Open-Meteo historical & forecast client
-│       │   └── prediction_service.py        # Coordinated inference service
-│       ├── evaluation/
-│       │   ├── metrics.py                   # Macro-F1, Balanced Acc, MAE, RMSE in mm
-│       │   └── plots.py                     # Confusion matrix, bar chart, scatter plots
-│       └── ui/
-│           └── app.py                       # Full multi-screen Streamlit application
-├── tests/
-│   ├── test_starter.py                      # Phase 0 setup tests
-│   ├── test_image_validation.py             # Image quality & corruption checks
-│   ├── test_manifest_alignment.py           # Manifest creation & split integrity
-│   ├── test_inference.py                    # PyTorch forward pass & probability shapes
-│   ├── test_rainfall_labels.py              # Rain bin boundaries & time leakage checks
-│   ├── test_ui_helpers.py                   # UI helper & service fallback tests
-│   └── test_end_to_end.py                   # Complete pipeline integration test
-└── reports/
-    ├── experiment_log.md                    # Chronological record of all experiments
-    ├── model_card.md                        # Model card specifications and caveats
-    ├── cloud_test_predictions.csv           # Per-sample test split predictions
-    └── figures/
-        ├── cloud_confusion_matrix.png       # Test split confusion matrix plot
-        └── rainfall_observed_vs_predicted.png# Observed vs. predicted scatter plot
+├── app.py                      # FastAPI Web Application & API Server (http://127.0.0.1:8000)
+├── config.py                   # Central paths, hyper-parameters, and domain definitions
+├── train.py                    # Unified training pipeline (Task A Vision + Task B Nowcasting)
+├── evaluate.py                 # Evaluation benchmark on held-out test splits
+├── static/                     # Modern responsive dashboard (Single-Page Application)
+│   ├── index.html              # Clean Tailwind CSS & Chart.js dashboard
+│   ├── app.js                  # Asynchronous client (drag & drop, live charts, API fetch)
+│   └── styles.css              # Custom styles and animations
+├── src/                        # Core reusable Python package (flat & modular)
+│   ├── __init__.py
+│   ├── dataset.py              # Validation, transforms, PyTorch Dataset, pairing
+│   ├── models.py               # MobileNetV3-Small CNN + Random Forest estimators
+│   ├── inference.py            # Single-image inference engine + PredictionService
+│   └── metrics.py              # Accuracy, Macro-F1, confusion matrix & plot utilities
+├── data/                       # Benchmark data & metadata manifests
+│   ├── samples/                # Benchmark demo sky photos (5 categories)
+│   ├── cloud_manifest.csv      # Cloud image paths & stratified splits
+│   └── rainfall_manifest.csv   # Aligned timestamps & next-hour rainfall observations
+├── artifacts/                  # Trained model checkpoints & metadata
+│   ├── cloud_classifier.pt     # Best fine-tuned MobileNetV3-Small model
+│   ├── rainfall_classifier.joblib  # Random Forest rain category classifier
+│   ├── rainfall_regressor.joblib   # Random Forest continuous precipitation regressor
+│   ├── multimodal_classifier.joblib# Multimodal (Image + Weather) model
+│   └── metadata.json           # Model parameters & test metrics
+├── reports/                    # Benchmark figures & evaluation logs
+│   ├── confusion_matrix.png    # Test split normalized confusion matrix
+│   ├── rainfall_scatter.png    # Observed vs. predicted precipitation scatter plot
+│   ├── model_card.md           # Model card specifications & physical caveats
+│   └── experiment_log.md       # Chronological experiment history
+├── tests/                      # Automated pytest test suite
+│   ├── test_api.py             # FastAPI REST endpoints & static delivery
+│   ├── test_data.py            # Image validation, transforms & date-aware splits
+│   ├── test_models.py          # MobileNetV3 forward pass & Random Forest training
+│   └── test_end_to_end.py      # Full pipeline integration verification
+├── requirements.txt            # Python dependencies
+├── pyproject.toml              # Package configuration
+├── .gitignore                  # Git exclusions for weights, data, and virtualenv
+├── .env.example                # Example environment variables
+├── AGENTS.md                   # Strict agentic engineering workflow rules
+└── README.md                   # Complete documentation and viva guide
 ```
 
 ---
@@ -154,72 +130,46 @@ Mini_Project/
 
 This project uses a dedicated local Python virtual environment (`.venv`). Do **not** use the global Python environment or Docker.
 
-### Step 1: Clone or navigate to the directory
+### Step 1: Activate the Virtual Environment
 ```powershell
-cd E:\Academics\MV\Mini_Project
-```
-
-### Step 2: Activate the Virtual Environment
-```powershell
-# Windows PowerShell:
+# In Windows PowerShell inside E:\Academics\MV\Mini_Project:
 .\.venv\Scripts\Activate.ps1
 ```
-*(If execution policies prevent activation, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in PowerShell first).*
 
-### Step 3: Verify the installation
+### Step 2: Run Tests to Verify Environment
 ```powershell
 .\.venv\Scripts\pytest.exe -v
 ```
-All **19 unit and integration tests** will run and pass!
+All **12 automated tests** will pass in seconds!
 
 ---
 
 ## 🚀 5. How to Run the Project Pipeline
 
-Every step is reproducible with a single command from PowerShell:
+Every step is executed directly from the project root using simple commands:
 
-### 1. Prepare Dataset & Manifest
-Generate or ingest sample sky images and create stratified train/val/test splits:
+### 1. Launch the Web Dashboard Application
 ```powershell
-.\.venv\Scripts\python.exe scripts/prepare_cloud_dataset.py --create-sample --samples-per-class 24
+.\.venv\Scripts\python.exe app.py
 ```
+Open your browser at:
+- **Web Dashboard**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **Interactive OpenAPI Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-### 2. Inspect Dataset Quality
-Inspect class balance, dimensions, and corrupt file count:
+### 2. (Optional) Re-train Models from Scratch
+To run the full end-to-end training pipeline:
 ```powershell
-.\.venv\Scripts\python.exe scripts/inspect_dataset.py
+.\.venv\Scripts\python.exe train.py --all
 ```
+Or train individual components:
+- Vision CNN only: `.\.venv\Scripts\python.exe train.py --vision`
+- Rainfall Nowcasting only: `.\.venv\Scripts\python.exe train.py --rainfall`
 
-### 3. Train the Cloud Classifier (Task A)
-Fine-tunes MobileNetV3-Small on CPU using AdamW optimizer, saving the checkpoint with highest validation macro-F1:
+### 3. (Optional) Re-run Test Set Evaluation Benchmark
 ```powershell
-.\.venv\Scripts\python.exe scripts/train_cloud_classifier.py --epochs 5 --lr 0.001
+.\.venv\Scripts\python.exe evaluate.py
 ```
-
-### 4. Evaluate Cloud Classifier on Held-Out Test Split
-Evaluates strictly on the held-out test split (18 samples), generating precision/recall/F1 and the confusion matrix:
-```powershell
-.\.venv\Scripts\python.exe scripts/evaluate_models.py
-```
-
-### 5. Build Timestamp-Aligned Rainfall Dataset
-Aligns sky image timestamps with next-hour precipitation targets using date-aware splits:
-```powershell
-.\.venv\Scripts\python.exe scripts/build_rainfall_pairs.py --generate-proxy-pairs
-```
-
-### 6. Train Rainfall Nowcasting Models (Task B)
-Extracts 1024-dim CNN embeddings and trains the Baseline, Image-only Random Forest, and Multimodal models:
-```powershell
-.\.venv\Scripts\python.exe scripts/train_rainfall_model.py
-```
-
-### 7. Launch the Modern Web Dashboard Application
-Launch the high-performance FastAPI web dashboard:
-```powershell
-.\.venv\Scripts\python.exe scripts/run_server.py
-```
-Open your browser at `http://127.0.0.1:8000`.
+This generates the accuracy and Macro-F1 report and saves `reports/confusion_matrix.png`.
 
 Interactive OpenAPI / Swagger documentation is also accessible at:
 `http://127.0.0.1:8000/docs`

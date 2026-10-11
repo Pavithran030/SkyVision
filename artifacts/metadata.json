@@ -1,0 +1,14 @@
+{
+  "trained_at": "2026-10-11T20:45:10.371823",
+  "horizon": "next_1_hour",
+  "label_source": "open_meteo_proxy_reanalysis",
+  "test_macro_f1_image": 0.25588235294117645,
+  "test_mae_mm_image": 2.83265,
+  "test_macro_f1_multimodal": 0.314484126984127,
+  "features_multimodal": [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "surface_pressure",
+    "wind_speed_10m"
+  ]
+}

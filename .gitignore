@@ -11,13 +11,10 @@ __pycache__/
 *.so
 *.egg-info/
 
-# Data directories (keep manifests and readmes)
-data/raw/*
-!data/raw/README.md
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/README.md
-!data/processed/.gitkeep
+# Data directories
+data/samples/*
+!data/samples/README.md
+!data/samples/.gitkeep
 
 # Model weights and artifacts (keep README and .gitkeep)
 artifacts/*.pt
